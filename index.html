@@ -1,0 +1,439 @@
+import React, { useState } from 'react';
+import { Heart } from 'lucide-react';
+
+export default function ProposalPage() {
+  const [step, setStep] = useState(0);
+  const [noButtonPosition, setNoButtonPosition] = useState({ x: 0, y: 0 });
+  const [showHearts, setShowHearts] = useState(false);
+  const [language, setLanguage] = useState('zh');
+  const [noClickCount, setNoClickCount] = useState(0);
+  const [fireworks, setFireworks] = useState([]);
+
+  const translations = {
+    zh: {
+      step0Title: '親愛的貓...',
+      step0Text: '史努比有一個很重要的問題想問你',
+      step0Button: '繼續 💕',
+      step1Question: '貓,你願意嫁給我嗎?',
+      step1Text: '讓我,史努比,用一生來愛你、照顧你、陪伴你 ❤️',
+      yesButton: '我願意!💍',
+      noButton: '不願意',
+      step2Title: '貓答應了!🎉',
+      step2Text: '史努比是世界上最幸福的人!',
+      step2Love: '史努比會永遠愛你 ❤️',
+      step2From: '— 你的史努比',
+      step2Button: '一起迎接2026!',
+      step3Title: '2026新年快樂!',
+      step3Text: '貓和史努比的第一個新年',
+      step3Wish: '願我們在新的一年裡永遠幸福快樂!',
+      step3Together: '一起走向美好的未來 ✨'
+    },
+    en: {
+      step0Title: 'My Dearest Cat...',
+      step0Text: "Snoopy have a very important question to ask you",
+      step0Button: 'Continue 💕',
+      step1Question: 'Cat, will you marry me?',
+      step1Text: "Let me, Snoopy, love you, care for you, and be with you for the rest of my life ❤️",
+      yesButton: 'Yes, I will! 💍',
+      noButton: 'No',
+      step2Title: 'Cat said YES! 🎉',
+      step2Text: "Snoopy is the happiest puppy in the world!",
+      step2Love: 'Snoopy will love you forever ❤️',
+      step2From: '— Your Snoopy',
+      step2Button: 'Welcome 2026 Together!',
+      step3Title: 'Happy New Year 2026!',
+      step3Text: "Cat and Snoopy's First New Year",
+      step3Wish: 'May we be forever happy in the new year!',
+      step3Together: 'Together towards a wonderful future ✨'
+    }
+  };
+
+  const t = translations[language];
+
+  const handleYesClick = () => {
+    setStep(2);
+    setShowHearts(true);
+  };
+
+  const handleCelebrate = () => {
+    setStep(3);
+    setShowHearts(false);
+    createFirework();
+    const interval = setInterval(createFirework, 1500);
+    setTimeout(() => clearInterval(interval), 10000);
+  };
+
+  const createFirework = () => {
+    const colors = [
+      { primary: '#FFD700', secondary: '#FFA500' },
+      { primary: '#FF69B4', secondary: '#FF1493' },
+      { primary: '#00CED1', secondary: '#1E90FF' },
+      { primary: '#FF6347', secondary: '#FF4500' },
+      { primary: '#9370DB', secondary: '#8A2BE2' },
+    ];
+    const colorPair = colors[Math.floor(Math.random() * colors.length)];
+    const newFirework = {
+      id: Date.now() + Math.random(),
+      x: 25 + Math.random() * 50,
+      y: 15 + Math.random() * 25,
+      colorPrimary: colorPair.primary,
+      colorSecondary: colorPair.secondary,
+      particles: Array.from({ length: 60 }, (_, i) => {
+        const angleGroup = Math.floor(i / 15);
+        const baseAngle = angleGroup * 90;
+        return {
+          angle: baseAngle + (Math.random() - 0.5) * 60,
+          speed: 0.7 + Math.random() * 0.5,
+          size: 1.5 + Math.random() * 1.5,
+          delay: Math.random() * 0.15,
+          trail: 15 + Math.random() * 10
+        };
+      })
+    };
+    setFireworks(prev => [...prev, newFirework]);
+    setTimeout(() => {
+      setFireworks(prev => prev.filter(fw => fw.id !== newFirework.id));
+    }, 2500);
+  };
+
+  const handleNoClick = () => {
+    setNoClickCount(prev => prev + 1);
+    const maxMove = window.innerWidth < 640 ? 120 : 200;
+    const randomX = Math.random() * maxMove - maxMove/2;
+    const randomY = Math.random() * maxMove - maxMove/2;
+    setNoButtonPosition({ x: randomX, y: randomY });
+  };
+
+  const FloatingHeart = ({ delay }) => (
+    <div
+      className="absolute animate-bounce"
+      style={{
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        animationDelay: `${delay}s`,
+        animationDuration: '2s'
+      }}
+    >
+      <Heart className="text-red-500 fill-red-500" size={20} />
+    </div>
+  );
+
+  const Firework = ({ firework }) => {
+    const particles = firework.particles.map((particle, i) => {
+      const radians = (particle.angle * Math.PI) / 180;
+      const distance = 150;
+      const endX = Math.cos(radians) * distance * particle.speed;
+      const endY = Math.sin(radians) * distance * particle.speed;
+      const animationName = `particle-move-${firework.id}-${i}`;
+      
+      return (
+        <div key={`particle-${firework.id}-${i}`}>
+
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: `${particle.size * 2}px`,
+              height: `${particle.size * 2}px`,
+              background: `radial-gradient(circle, ${firework.colorPrimary}, ${firework.colorSecondary})`,
+              boxShadow: `0 0 ${particle.size * 6}px ${firework.colorPrimary}`,
+              left: '-2px',
+              top: '-2px',
+              animation: `particle-move 2s ease-out ${particle.delay}s forwards`,
+              transform: `translate(${endX}px, ${endY}px) scale(0.2)`,
+              opacity: 0,
+              '--end-x': `${endX}px`,
+              '--end-y': `${endY}px`
+            }}
+          />
+
+          {Array.from({ length: particle.trail }).map((_, j) => {
+            const trailEndX = endX * (1 - j * 0.03);
+            const trailEndY = endY * (1 - j * 0.03);
+            return (
+              <div
+                key={`trail-${firework.id}-${i}-${j}`}
+                className="absolute rounded-full"
+                style={{
+                  width: `${particle.size * (1 - j / particle.trail)}px`,
+                  height: `${particle.size * (1 - j / particle.trail)}px`,
+                  background: firework.colorSecondary,
+                  opacity: 0,
+                  left: '-1px',
+                  top: '-1px',
+                  animation: `particle-move 2s ease-out ${particle.delay + j * 0.02}s forwards`,
+                  transform: `translate(${trailEndX}px, ${trailEndY}px) scale(0.2)`,
+                  '--end-x': `${trailEndX}px`,
+                  '--end-y': `${trailEndY}px`
+                }}
+              />
+            );
+          })}
+        </div>
+      );
+    });
+    
+    return (
+      <div
+        key={firework.id}
+        className="absolute pointer-events-none"
+        style={{
+          left: `${firework.x}%`,
+          top: `${firework.y}%`,
+          transform: 'translate(-50%, -50%)'
+        }}
+      >
+        {particles}
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: '12px',
+            height: '12px',
+            background: `radial-gradient(circle, ${firework.colorPrimary}, transparent)`,
+            boxShadow: `0 0 40px ${firework.colorPrimary}, 0 0 80px ${firework.colorSecondary}`,
+            left: '-6px',
+            top: '-6px',
+            animation: 'center-flash 1s ease-out forwards',
+            transform: 'scale(6)',
+            opacity: 0
+          }}
+        />
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-200 via-purple-200 to-pink-300 flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
+      {showHearts && [...Array(15)].map((_, i) => (
+        <FloatingHeart key={i} delay={i * 0.1} />
+      ))}
+
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20 flex gap-1 sm:gap-2">
+        <button
+          onClick={() => setLanguage('zh')}
+          className={`px-2 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-base font-semibold transition-all ${
+            language === 'zh'
+              ? 'bg-pink-500 text-white shadow-lg'
+              : 'bg-white text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          繁中
+        </button>
+        <button
+          onClick={() => setLanguage('en')}
+          className={`px-2 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-base font-semibold transition-all ${
+            language === 'en'
+              ? 'bg-pink-500 text-white shadow-lg'
+              : 'bg-white text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          English
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-8 md:p-12 max-w-2xl w-full text-center relative z-10 mx-4">
+        {step === 0 && (
+          <div className="space-y-4 sm:space-y-6 animate-fade-in">
+            <div className="text-6xl sm:text-8xl mb-2 sm:mb-4">🐶</div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-3 sm:mb-4 px-2">
+              {t.step0Title}
+            </h1>
+            <p className="text-base sm:text-xl text-gray-600 mb-4 sm:mb-8 px-2">
+              {t.step0Text}
+            </p>
+            <button
+              onClick={() => setStep(1)}
+              className="bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-full text-lg sm:text-xl transition-all transform active:scale-95 shadow-lg"
+            >
+              {t.step0Button}
+            </button>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="space-y-4 sm:space-y-8 animate-fade-in">
+            <div className="flex justify-center items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
+              <div className="text-5xl sm:text-7xl animate-pulse">🐶</div>
+              <Heart className="w-10 h-10 sm:w-16 sm:h-16 text-red-500 fill-red-500 animate-pulse" />
+              <div className="text-5xl sm:text-7xl animate-pulse">🐱</div>
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-3 sm:mb-6 px-2">
+              {t.step1Question}
+            </h1>
+            <p className="text-base sm:text-lg text-gray-600 mb-4 sm:mb-8 px-2">
+              {t.step1Text}
+            </p>
+            <div className="relative w-full px-4">
+              <div className="block sm:hidden">
+                <button
+                  onClick={handleYesClick}
+                  className="bg-green-500 active:bg-green-700 text-white font-bold py-4 px-8 rounded-full text-lg transition-all transform active:scale-95 shadow-lg w-full mb-20"
+                >
+                  {t.yesButton}
+                </button>
+                <div className="relative h-16 flex justify-center items-center">
+                  <button
+                    onClick={handleNoClick}
+                    onTouchStart={handleNoClick}
+                    className="bg-gray-400 text-white font-bold py-3 px-6 rounded-full text-sm transition-all shadow-lg absolute"
+                    style={{
+                      transform: `translate(${noButtonPosition.x}px, ${noButtonPosition.y}px)`,
+                      transition: 'transform 0.3s ease'
+                    }}
+                  >
+                    {t.noButton}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="hidden sm:flex gap-4 justify-center items-center relative min-h-[80px]">
+                <button
+                  onClick={handleYesClick}
+                  className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white font-bold py-4 px-12 rounded-full text-xl transition-all transform active:scale-95 shadow-lg z-10"
+                >
+                  {t.yesButton}
+                </button>
+                <button
+                  onClick={handleNoClick}
+                  className="bg-gray-400 text-white font-bold py-4 px-12 rounded-full text-xl transition-all shadow-lg absolute"
+                  style={{
+                    transform: `translate(${noButtonPosition.x}px, ${noButtonPosition.y}px)`,
+                    transition: 'transform 0.3s ease'
+                  }}
+                >
+                  {t.noButton}
+                </button>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-400 mt-2 sm:mt-4 px-2">
+              {t.hint}
+            </p>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="space-y-4 sm:space-y-6 animate-fade-in">
+            <div className="flex justify-center items-center gap-1 sm:gap-2 text-5xl sm:text-6xl mb-2 sm:mb-4">
+              <span>🐶</span>
+              <span>❤️</span>
+              <span>🐱</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-pink-600 mb-3 sm:mb-4 px-2">
+              {t.step2Title}
+            </h1>
+            <p className="text-xl sm:text-2xl text-gray-700 mb-4 sm:mb-6 px-2">
+              {t.step2Text}
+            </p>
+            <div className="text-5xl sm:text-6xl">💍✨🎉</div>
+            <p className="text-base sm:text-lg text-gray-600 mt-4 sm:mt-8 px-2">
+              {t.step2Love}
+            </p>
+            <p className="text-sm sm:text-base text-gray-500 mt-3 sm:mt-4 italic px-2">
+              {t.step2From}
+            </p>
+            <button
+              onClick={handleCelebrate}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:from-purple-700 active:to-pink-700 text-white font-bold py-3 px-8 sm:py-4 sm:px-10 rounded-full text-lg sm:text-xl transition-all transform active:scale-95 shadow-lg mt-6"
+            >
+              {t.step2Button}
+            </button>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-4 sm:space-y-6 animate-fade-in">
+            <div className="text-6xl sm:text-8xl mb-2 sm:mb-4" style={{ animation: 'bounce-emoji 1s ease-in-out infinite' }}>🎆</div>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 text-transparent bg-clip-text mb-3 sm:mb-4 px-2">
+              {t.step3Title}
+            </h1>
+            <div className="flex justify-center items-center gap-2 text-4xl sm:text-5xl my-4">
+              <span style={{ animation: 'pulse-emoji 1.5s ease-in-out infinite' }}>🐶</span>
+              <span >💑</span>
+              <span style={{ animation: 'pulse-emoji 1.5s ease-in-out infinite 0.3s' }}>🐱</span>
+            </div>
+            <p className="text-xl sm:text-2xl text-gray-700 mb-4 px-2 font-semibold">
+              {t.step3Text}
+            </p>
+            <div className="text-5xl sm:text-6xl my-6">
+              <span style={{ display: 'inline-block' }}>🎊</span>
+              <span style={{ display: 'inline-block' }}>🎉</span>
+              <span style={{ display: 'inline-block' }}>🎈</span>
+            </div>
+            <p className="text-lg sm:text-xl text-gray-600 px-2 leading-relaxed">
+              {t.step3Wish}
+            </p>
+            <p className="text-base sm:text-lg text-pink-600 font-semibold mt-4 px-2">
+              {t.step3Together}
+            </p>
+            <div className="text-4xl sm:text-5xl mt-6">2️⃣0️⃣2️⃣6️⃣</div>
+          </div>
+        )}
+      </div>
+
+      <div className="fixed inset-0 pointer-events-none z-50">
+        {fireworks.map(firework => (
+          <Firework key={firework.id} firework={firework} />
+        ))}
+      </div>
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out;
+        }
+        @keyframes particle-move {
+          0% {
+            transform: translate(0, 0) scale(1);
+            opacity: 0;
+          }
+          5% {
+            opacity: 1;
+          }
+          70% {
+            opacity: 1;
+          }
+          100% {
+            transform: translate(var(--end-x), var(--end-y)) scale(0.2);
+            opacity: 0;
+          }
+        }
+        .particle-animation {
+          animation: particle-move 2s ease-out forwards;
+        }
+        @keyframes center-flash {
+          0% {
+            transform: scale(0);
+            opacity: 1;
+          }
+          30% {
+            transform: scale(2.5);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(6);
+            opacity: 0;
+          }
+        }
+        .center-flash-animation {
+          animation: center-flash 1s ease-out forwards;
+        }
+        @keyframes bounce-emoji {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes pulse-emoji {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+      `}</style>
+    </div>
+  );
+}
